@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Vehicle Smoke Emission Detection</title>
+    <style>
+        h2 {
+            font-family: "Times New Roman", Times, serif;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .navbar {
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        .navbar .navdiv {
+            color: dimgray;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            margin: 0;
+            padding: 14px 16px;
+            color: #333;
+        }
+
+        .navbar ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar li {
+            display: inline-block;
+        }
+
+        .navbar a {
+            display: block;
+            color: #333;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .navbar a:hover {
+            color: blue;
+        }
+
+        #uploadForm {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: 0 auto;
+            margin-top: 50px;
+        }
+
+        input[type="file"] {
+            margin-bottom: 15px;
+        }
+
+        input[type="submit"] {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: rgb(11, 83, 17);
+        }
+
+        #progress-bar {
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+            border-radius: 6px;
+            height: 25px;
+            background-color: lightgray;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            display: none;
+        }
+
+        #uploadBtn {
+            font-size: 15px;
+            display: block;
+            margin: 0 auto;
+            text-align: center;
+            margin-top: 80px;
+            padding: 10px 20px;
+        }
+
+        #bar {
+            width: 0;
+            border-radius: 6px;
+            height: 100%;
+            background-color: green;
+        }
+
+        p {
+            font-family: Arial, sans-serif;
+            font-size: 15px;
+        }
+
+        #uploadForm {
+            width: 80%;
+            max-width: 400px;
+            margin: 0 auto;
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        #uploadError {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navdiv">
+            <h2>YOLOv8 Smoke Detection & Color Analysis for Vehicles</h2>
+            <ul>
+                <li><a href="/">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- <h1>Vehicle Smoke Detection</h1> -->
+    <form id="uploadForm" action="/process_video" method="POST" enctype="multipart/form-data"
+        onsubmit="handleFormSubmission(event)">
+        <h2>
+            Upload a video
+        </h2>
+        <input type="file" name="video" accept="video/*">
+        <p id="uploadError" style="display: none;">Please upload a video file.</p>
+        <input id="uploadBtn" type="submit" value="Upload and Process">
+    </form>
+
+    <div id="progress-bar" style="margin-top: 20px;">
+        <div id="bar"></div>
+        <p>Video is on process, please wait...</p>
+    </div>
+
+    <script>
+        document.getElementById('uploadBtn').addEventListener('click', function () {
+            var fileInput = document.querySelector('input[type="file"]');
+            var errorMessage = document.getElementById('uploadError');
+
+            if (!fileInput.value) {
+                errorMessage.style.display = 'block';
+                return false;
+            } else {
+                errorMessage.style.display = 'none';
+            }
+
+            var progressBar = document.getElementById('progress-bar');
+            var bar = document.getElementById('bar');
+
+            progressBar.style.display = 'block';
+
+            var duration = (1 * 60 + 45) * 1000;
+
+            var startTime = new Date().getTime();
+
+            function updateProgressBar() {
+                var currentTime = new Date().getTime();
+                var elapsedTime = currentTime - startTime;
+                var progress = (elapsedTime / duration) * 100;
+
+                bar.style.width = progress + '%';
+
+                if (progress < 100) {
+                    requestAnimationFrame(updateProgressBar);
+                } else {
+                    progressBar.style.display = 'none';
+                }
+            }
+            updateProgressBar();
+        });
+    </script>
+</body>
+
+</html>
+

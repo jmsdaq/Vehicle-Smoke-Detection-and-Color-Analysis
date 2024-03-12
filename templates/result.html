@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>VSE Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            font-family: "Times New Roman", Times, serif;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav {
+            background-color: #f0f0f0;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center; /* Center vertically */
+            padding: 10px 14px; /* Adjusted padding */
+        }
+
+        .name {
+            /* flex-grow: 1;  Takes as much space as it needs to push the other elements to the right */
+            margin-right: auto;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center; /* Center vertically */
+        }
+
+        nav li {
+            display: inline-block;
+            margin-right: 5px; /* Add some spacing between the items */
+        }
+
+        nav a {
+            display: block;
+            color: #333;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            color: blue;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        video {
+            display: block;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: #555;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 400px;
+            max-width: 550px;
+            display: block;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="name">
+            <h1 id="pageTitle">YOLOv8 Smoke Detection & Color Analysis for Vehicles</h1>
+        </div>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/result">/ View Detection Analysis Result</a></li>
+        </ul>
+    </nav>
+
+    <h2>View Detection Analysis Result</h2>
+    <div class="container">
+        <div>
+            <h2>Processed Video</h2>
+            <div>
+                <video width="550px" height="400px" controls>
+                    <source src="/processed_videos/processed_vid.mp4" type="video/mp4">
+                </video>
+                <p>If your browser does not support the video, you can download the video:</p>
+                <a href="{{ url_for('video_route') }}" class="download-btn" download="process_video.mp4">Download
+                    Video</a>
+            </div>
+        </div>
+
+        <div>
+            <h2>Dominant Color Analysis</h2>
+            <div style="width: 100%;">
+                <canvas id="colorChart"></canvas>
+            </div>
+        </div>
+
+        <div>
+            <h2>Dominant Color Counts</h2>
+            <ul>
+                {% for color_index in range(colors|length) %}
+                {% set color = colors[color_index] %}
+                {% set count = counts[color_index] %}
+                <li><strong>{{ color }}</strong>: {{ count }}</li>
+                {% endfor %}
+            </ul>
+
+            <h2>Smoke Danger Levels</h2>
+            <ul>
+                {% for index in range(levels|length) %}
+                <li><strong>Danger Level:</strong> {{ levels[index] }}</li>
+                <li><strong>Description:</strong> {{ descriptions[index] }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Get colors, counts, levels, and descriptions data from the backend
+        var colors = {{ colors | tojson }};
+        var counts = {{ counts | tojson }};
+        var levels = {{ levels | tojson }};
+        var descriptions = {{ descriptions | tojson }};
+
+
+        // Create a bar chart using Chart.js
+        var colorMap = {
+            "wispy white": "rgba(255, 255, 255, 0.5)",
+            "light gray": "rgba(211, 211, 211, 0.5)",
+            "lightgrey": "rgba(211, 211, 211, 0.5)",
+            "silver": "rgba(192, 192, 192, 0.5)",
+            "black": "rgba(0, 0, 0, 0.5)",
+            "charcoal": "rgba(54, 69, 79, 0.5)",
+            "blue": "rgba(0, 0, 255, 0.5)",
+            "grey": "rgba(128, 128, 128, 0.5)",
+            "gray": "rgba(128, 128, 128, 0.5)",
+            "slate gray": "rgba(112, 128, 144, 0.5)",
+            "slate grey": "rgba(112, 128, 144, 0.5)",
+            "darkgray": "rgba(169, 169, 169, 0.5)",
+            "dimgray": "rgba(105, 105, 105, 0.5)",
+            "lightslategray": "rgba(119, 136, 153, 0.5)",
+            "white": "rgba(255, 255, 255, 0.5)",
+            "snow": "rgba(255, 250, 250, 0.5)",
+            "ivory": "rgba(255, 255, 240, 0.5)"
+        };
+
+
+        var dynamicColors = colors.map(color => colorMap[color]);
+
+
+        var ctx = document.getElementById('colorChart').getContext('2d');
+        var colorChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: colors,
+                datasets: [{
+                    label: 'Color Counts',
+                    data: counts, // Use the counts directly for the height of bars
+                    backgroundColor: dynamicColors,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Dominant Colors'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
+
